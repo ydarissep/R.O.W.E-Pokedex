@@ -1,7 +1,7 @@
 function regexWildLocations(jsonWildLocations, locations){
 
 	const wildEncounters = jsonWildLocations["wild_encounter_groups"][0]["encounters"]
-	const methodArrayWild = ["land_morning_mons", "land_mons", "land_night_mons", "water_mons", "rock_smash_mons", "fishing_mons", "hidden_mons", "headbutt_mons"]
+	const methodArrayWild = ["land_mons_morning", "land_mons", "land_mons_night", "water_mons", "rock_smash_mons", "fishing_mons", "hidden_mons", "headbutt_mons"]
 
 	for(let i = 0; i < wildEncounters.length; i++)
 	{
@@ -98,7 +98,7 @@ function replaceMethodString(method, index){
 		return "Night"
 	}
 	else if(method.match(/land/i)){
-		return "Land"
+		return "Day"
 	}
 	else if(method.match(/day/i)){
 		return "Day"

@@ -1,5 +1,5 @@
 window.repo = "BelialClover/RoweRepo/main"
-window.checkUpdate = "1 ROWE"
+window.checkUpdate = "2 ROWE"
 
 fetch('https://raw.githubusercontent.com/ydarissep/dex-core/main/index.html').then(async response => {
 	return response.text()
