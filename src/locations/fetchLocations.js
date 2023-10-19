@@ -17,7 +17,7 @@ async function buildLocationsObj(){
     let locations = {}
     try{
         locations = await getWildLocations(locations)
-        locations = await getGameCornerLocations(locations)
+        //locations = await getGameCornerLocations(locations)
     }
     catch(e){
         console.log(e.message)
