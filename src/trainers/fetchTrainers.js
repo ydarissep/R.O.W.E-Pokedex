@@ -18,22 +18,11 @@ async function getTrainers(trainers){
 
 async function buildTrainersObj(){
     let trainers = {}
-    try{
-        /*
-        trainers = await getScripts(trainers)
-        trainers = await getTrainers(trainers)
-        
-        delete trainers["Route 102"]["TRAINER_OLDPLAYER"]
-        
-        trainers = await bugFixTrainers(trainers)
-        */
-    }
-    catch(e){
-        console.log(e.message)
-        console.log(e.stack)
-        footerP("Fetching backup abilities")
-        abilities = backupData[1]
-    }
+
+    //trainers = await getScripts(trainers)
+    //trainers = await getTrainers(trainers)
+    
+    trainers = await bugFixTrainers(trainers)
 
     await localStorage.setItem("trainers", LZString.compressToUTF16(JSON.stringify(trainers)))
     return trainers
@@ -59,12 +48,21 @@ async function fetchTrainersObj(){
 
             for(difficulty in trainers[zone][trainer]["party"]){
                 if(difficulty !== "Normal" && !document.getElementById(`difficulty${difficulty}`)){
-                    const newDifficulty = document.createElement("input"); newDifficulty.setAttribute("id", `difficulty${difficulty}`); newDifficulty.setAttribute("type", "checkbox")
-                    const difficultyLabel = document.createElement("label"); difficultyLabel.setAttribute("for", `difficulty${difficulty}`); difficultyLabel.innerText = difficulty
-                    difficultyCheckboxContainer.append(difficultyLabel)
-                    difficultyCheckboxContainer.append(newDifficulty)
+                    const newDifficulty = document.createElement("button"); newDifficulty.innerText = difficulty; newDifficulty.className = "setting"; newDifficulty.setAttribute("id", `difficulty${difficulty}`); newDifficulty.setAttribute("type", "button")
+                    difficultyButtonContainer.append(newDifficulty)
 
-                    newDifficulty.addEventListener("change", () => {
+                    newDifficulty.addEventListener("click", () => {
+                        if(newDifficulty.classList.contains("activeSetting")){
+                            trainersDifficulty = "Normal"
+                            newDifficulty.classList.remove("activeSetting")
+                        }
+                        else{
+                            for(const difficultyButton of difficultyButtonContainer.children){
+                                difficultyButton.classList.remove("activeSetting")
+                            }
+                            newDifficulty.classList.add("activeSetting")
+                            trainersDifficulty = newDifficulty.innerText
+                        }
                         trainerSpeciesMatchFilter(true)
                         filterTrainersTableInput(trainersInput.value)
                     })
@@ -85,6 +83,26 @@ async function fetchTrainersObj(){
 
 
 
+
+
+
+function getTrainerSpriteSrc(trainerSprite){
+    const url = `https://raw.githubusercontent.com/${repo}/graphics/trainers/front_pics/${trainerSprite.replace(/^TRAINER_PIC_/, "").toLowerCase()}_front_pic.png`
+    if(sprites[trainerSprite]){
+        if(sprites[trainerSprite].length < 500){
+            localStorage.removeItem(trainerSprite)
+            spriteRemoveTrainerBgReturnBase64(trainerSprite, url)
+            return url
+        }
+        else{
+            return sprites[trainerSprite]
+        }
+    }
+    else{
+        spriteRemoveTrainerBgReturnBase64(trainerSprite, url)
+        return url
+    }
+}
 
 
 
