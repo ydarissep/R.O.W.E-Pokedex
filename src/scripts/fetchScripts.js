@@ -281,6 +281,7 @@ async function bugFixTrainers(){
 
             }
             if(Object.keys(trainers[zone][trainer]["party"]).length === 0){
+                delete trainers[zone][trainer]
                 if(Object.keys(trainers[zone]).length === 0){
                     delete trainers[zone]
                 }
