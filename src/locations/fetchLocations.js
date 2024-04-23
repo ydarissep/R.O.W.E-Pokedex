@@ -22,8 +22,6 @@ async function buildLocationsObj(){
     catch(e){
         console.log(e.message)
         console.log(e.stack)
-        footerP("Fetching backup abilities")
-        abilities = backupData[1]
     }
     
     await localStorage.setItem("locations", LZString.compressToUTF16(JSON.stringify(locations)))

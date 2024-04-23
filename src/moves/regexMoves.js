@@ -3,7 +3,6 @@ function regexMovesDescription(textMovesDescription, moves){
     let conversionTable = {}, descriptionFound = false, conversionDescription = undefined, english = false
 
     lines.forEach(line => { // first go to get conversionTable
-        checkTimeout()
         const matchMoves = line.match(/MOVE_\w+/i)
         if(matchMoves){
             const move = matchMoves[0]
@@ -22,7 +21,6 @@ function regexMovesDescription(textMovesDescription, moves){
     })
 
     lines.forEach(line => { // second go with conversionTable
-        checkTimeout()
         if(/sNullDescription/.test(line)){
             english = true
         }
@@ -63,7 +61,6 @@ function regexMoves(textMoves, moves){
     let move = null, change = false, rebalanced = false
 
     lines.forEach(line => {
-        checkTimeout()
         const matchMoves = line.match(/\[ *(MOVE_\w+) *\]/i)
         if(matchMoves){
             move = matchMoves[1]

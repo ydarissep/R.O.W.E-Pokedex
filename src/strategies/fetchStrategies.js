@@ -17,8 +17,6 @@ async function buildStrategiesObj(){
     catch(e){
         console.log(e.message)
         console.log(e.stack)
-        footerP("Fetching backup abilities")
-        abilities = backupData[1]
     }
 
     //await localStorage.setItem("strategies", LZString.compressToUTF16(JSON.stringify(strategies)))

@@ -24,8 +24,6 @@ async function buildMovesObj(){
     catch(e){
         console.log(e.message)
         console.log(e.stack)
-        footerP("Fetching backup abilities")
-        abilities = backupData[1]
     }
 
     await localStorage.setItem("moves", LZString.compressToUTF16(JSON.stringify(moves)))

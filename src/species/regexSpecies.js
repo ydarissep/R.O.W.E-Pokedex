@@ -3,7 +3,6 @@ function regexSpecies(textSpecies, species){
     let formsStart = null, ID = 0
 
     lines.forEach(line => {
-        checkTimeout()
         if (/#define *FORMS_START *\w+/i.test(line))
             formsStart = ID
 
@@ -80,7 +79,6 @@ function regexBaseStats(textBaseStats, species){
     let stop = false, value, name, vanilla = false
 
     lines.forEach(line => {
-        checkTimeout()
         if(/#else/i.test(line))
                 stop = true
         if(/#endif/i.test(line))
@@ -347,7 +345,6 @@ function getLevelUpLearnsetsConversionTable(textLevelUpLearnsetsPointers){
     let conversionTable = {}
 
     lines.forEach(line => {
-        checkTimeout()
         const matchSpecies = line.match(/SPECIES_\w+/i)
         if(matchSpecies){
             const value = matchSpecies[0]
@@ -373,7 +370,6 @@ function regexLevelUpLearnsets(textLevelUpLearnsets, conversionTable, species){
     let speciesArray = []
 
     lines.forEach(line => {
-        checkTimeout()
         const matchConversion = line.match(/s\w+LevelUpLearnset/i)
         if(matchConversion){
             const index = matchConversion[0]
@@ -488,7 +484,6 @@ function regexEvolution(textEvolution, species){
     let name
 
     lines.forEach(line =>{
-        checkTimeout()
         const matchSpecies = line.match(/\[ *(SPECIES_\w+) *\]/i)
         if(matchSpecies)
             name = matchSpecies[1]
@@ -550,7 +545,6 @@ function regexForms(textForms, species){
     let speciesArray = []
 
     lines.forEach(line => {
-        checkTimeout()
         const matchSpecies = line.match(/SPECIES_\w+/i)
         
         if(/FORM_SPECIES_END/i.test(line)){
@@ -579,7 +573,6 @@ function regexEggMovesLearnsets(textEggMoves, species){
     let name = null
 
     lines.forEach(line => {
-        checkTimeout()
         if(/egg_moves/i.test(line))
             name = null
         const matchMove = line.match(/MOVE_\w+/i)
@@ -616,7 +609,6 @@ function getSpriteConversionTable(textFrontPicTable, species){
     let conversionTable = {}
 
     lines.forEach(line => {
-        checkTimeout()
         const matchConversionSpecies = line.match(/(\w+) *, *(gMonFrontPic_\w+)/i)
         if(matchConversionSpecies){
 
@@ -640,7 +632,6 @@ function regexSprite(textSprite, conversionTable, species){
     const conversionTableString = JSON.stringify(Object.keys(conversionTable))
 
     lines.forEach(line => {
-        checkTimeout()
         const matchgMonFrontPic = line.match(/gMonFrontPic_\w+/i)
         if(matchgMonFrontPic){
 
