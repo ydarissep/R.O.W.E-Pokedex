@@ -4,6 +4,9 @@ async function regexScripts(textScripts, tradeText, specialFunctions){
 
     const scripts = textScripts.match(/data\/.*.inc/ig)
     for(let i = 0, j = scripts.length; i < j; i++){
+        if(/data\/maps\/.*\/scripts.inc/i.test(scripts[i])){
+            scripts[i] = scripts[i].replace(/.inc$/, ".pory")
+        }
         fetch(`https://raw.githubusercontent.com/${repo}/${scripts[i]}`)
         .then(promises => {
             promises.text()
@@ -17,80 +20,6 @@ async function regexScripts(textScripts, tradeText, specialFunctions){
 
 
 
-
-
-async function regexItems(textItems){
-    const lines = textItems.split("\n")
-    const regex = /.name|.description|.holdEffectParam|.price|.pocket/i
-    let item = null, conversionTable = {}
-
-    lines.forEach(line => {
-        const regexMatch = line.match(regex)
-        if(/\[\s*ITEM_\w+\s*\]/.test(line)){
-            item = line.match(/\[\s*(ITEM_\w+)\s*\]/)[1]
-            initItem(item)
-        }
-        else if(regexMatch){
-            const match = regexMatch[0]
-            if(match === ".name"){
-                items[item]["ingameName"] = line.match(/_\("(.*)"\)/)[1]
-            }
-            else if(match === ".description"){
-                const descMatch = line.match(/s\w+Desc/i)
-                if(descMatch){
-                    const desc = descMatch[0]
-                    if(!(desc in conversionTable)){
-                        conversionTable[desc] = [item]
-                    }
-                    else{
-                        conversionTable[desc].push(item)
-                    }
-                }
-            }
-            else if(match === ".holdEffectParam"){
-                items[item]["effect"] = line.match(/=\s*(.*)\s*,/)[1]
-            }
-            else if(match === ".price"){
-                items[item]["price"] = line.match(/\d+/)[0]
-            }
-            else if(match === ".pocket"){
-                items[item]["pocket"] = line.match(/POCKET_\w+/)[0]
-            }
-        }
-    })
-
-    return conversionTable
-}
-
-
-
-
-
-
-
-async function regexItemDescriptions(textItemDescriptions, conversionTable){
-    const lines = textItemDescriptions.split("\n")
-    let desc = null, description = ""
-
-    lines.forEach(line => {
-        const descMatch = line.match(/s\w+Desc/i)
-        if(descMatch){
-            desc = descMatch[0]
-        }
-        else if(/".*"/.test(line)){
-            description += line.match(/"(.*)"/)[1].replaceAll("-\\n", "").replaceAll("\\n", " ")
-        }
-
-        if(/"\s*\)\s*;/.test(line)){
-            conversionTable[desc].forEach(item => {
-                items[item]["description"] = description
-            })
-
-            desc = null
-            description = ""
-        }
-    })
-}
 
 
 
@@ -111,7 +40,7 @@ async function regexTrainers(textTrainers){
     const textRematch = await rawRematch.text()
 
     let trainerToRematch = {}
-    const rematches = textRematch.match(/REMATCH\(TRAINER_\w+, TRAINER_\w+, TRAINER_\w+, TRAINER_\w+/ig)
+    const rematches = textRematch.match(/REMATCH\(TRAINER_\w+.*TRAINER_\w+./ig)
     rematches.forEach(rematch => {
         const trainerMatch = rematch.match(/TRAINER_\w+/ig)
         for(let i = 1; i < trainerMatch.length; i++){
@@ -185,12 +114,14 @@ async function regexTrainers(textTrainers){
                         trainers[zone][trainer]["double"] = true
                     }
                 }
+                /*
                 else if(/.partyInsane *=/i.test(line)){
                     const matchParty = line.match(/sParty_\w+/i)
                     if(matchParty){
                         conversionTable[matchParty[0]] = trainer
                     }
                 }
+                */
                 else if(/.party *=/i.test(line)){
                     const matchParty = line.match(/sParty_\w+/i)
                     if(matchParty){
@@ -215,34 +146,6 @@ async function regexTrainersParties(textTrainersParties, [conversionTable, train
     const lines = textTrainersParties.split("\n")
     let comment = false, trainer = null, zone = null, difficulty = "Normal", mon = {}
 
-    const rawTrainerSpreads = await fetch(`https://raw.githubusercontent.com/${repo}/src/data/trainer_spreads.h`)
-    const textTrainerSpreads = await rawTrainerSpreads.text()
-
-    let spreadToStats = {}
-    textTrainerSpreads.match(/\[SPREAD_\w+\].+?(?=.nature).+?(?=})/gs).forEach(spread => {
-        const spreadMatch = spread.match(/\[(SPREAD_\w+)\](.+?(?=EVs).+?)((?=IVs).+?)((?=nature).*)/s)
-        if(spreadMatch){
-            const spreadName = spreadMatch[1].match(/SPREAD_\w+/i)[0]
-            spreadToStats[spreadName] = {}
-            spreadToStats[spreadName]["evs"] = spreadMatch[2].match(/\d+/g)
-            if(!spreadToStats[spreadName]["evs"]){
-                spreadToStats[spreadName]["evs"] = [0]
-            }
-            else if(spreadToStats[spreadName]["evs"].length === 6){
-                spreadToStats[spreadName]["evs"].push(spreadToStats[spreadName]["evs"].splice(3, 1)[0])
-            }
-            spreadToStats[spreadName]["ivs"] = spreadMatch[3].match(/\d+/g)
-            if(!spreadToStats[spreadName]["ivs"]){
-                spreadToStats[spreadName]["ivs"] = [0]
-            }
-            else if(spreadToStats[spreadName]["ivs"].length === 6){
-                spreadToStats[spreadName]["ivs"].push(spreadToStats[spreadName]["ivs"].splice(3, 1)[0])
-            }
-            spreadToStats[spreadName]["nature"] = spreadMatch[4].match(/NATURE_\w+/i)[0]            
-        }
-    })
-    
-
     lines.forEach(line => {
         line = line.trim()
 
@@ -253,15 +156,17 @@ async function regexTrainersParties(textTrainersParties, [conversionTable, train
             comment = false
         }
         
-        if(!comment && !/^\/\//.test(line)){
+        if((!comment && !/^\/\//.test(line))){
             if(/sParty_\w+/i.test(line)){
                 const party = line.match(/sParty_\w+/)[0]
                 if(conversionTable[party]){
                     trainer = conversionTable[party]
                     zone = trainerToZone[trainer]
-                    if(/Insane$/.test(party)){
-                        difficulty = "Elite"
+                    /*
+                    if(/Hard$/.test(party)){
+                        difficulty = "Hard"
                     }
+                    */
                 }
             }
             if(zone && trainers[zone][trainer]){
@@ -284,9 +189,29 @@ async function regexTrainersParties(textTrainersParties, [conversionTable, train
                     }
                 }
                 else if(/.ability *=/i.test(line)){
-                    const matchAbility = line.match(/\d+/)
+                    const matchAbility = line.match(/ABILITY_\w+/)
                     if(matchAbility){
                         mon["ability"] = matchAbility[0]
+                    }
+                }
+                else if(/.iv *=/i.test(line)){
+                    const matchIVs = line.match(/\d+/g)
+                    if(matchIVs){
+                        const IVs = Math.floor(matchIVs[0] * 31 / 255)
+                        mon["ivs"] = [IVs, IVs, IVs, IVs, IVs, IVs]
+                    }
+                }
+                else if(/.evs *=/i.test(line)){
+                    const matchEVs = line.match(/\d+/g)
+                    if(matchEVs){
+                        mon["evs"] = matchEVs
+                        //mon["evs"].push(mon["evs"].splice(3, 1)[0])
+                    }
+                }
+                else if(/.nature *=/i.test(line)){
+                    const matchNature = line.match(/NATURE_\w+/i)
+                    if(matchNature){
+                        mon["nature"] = matchNature[0]
                     }
                 }
                 else if(/.moves *=/i.test(line)){
@@ -295,23 +220,20 @@ async function regexTrainersParties(textTrainersParties, [conversionTable, train
                         mon["moves"] = matchMoves
                     }
                 }
-                else if(/.spread *=/i.test(line)){
-                    const spreadMatch = line.match(/SPREAD_\w+/i)
-                    if(spreadMatch){
-                        const spreadName = spreadMatch[0]
-                        if(spreadToStats[spreadName]){
-                            mon["ivs"] = spreadToStats[spreadName]["ivs"]
-                            mon["evs"] = spreadToStats[spreadName]["evs"]
-                            mon["nature"] = spreadToStats[spreadName]["nature"]
-                        }
-                    }
-                }
                 else if(/^} *,?$/.test(line)){
-                    if(mon["lvl"] && mon["name"] && mon["moves"]){ 
+                    if(mon["lvl"] && mon["name"]){ 
                         if(!mon["item"]){
                             mon["item"] = "ITEM_NONE"
                         }
-                        if(!mon["ability"]){
+                        if(mon["ability"]){
+                            for(let i = 0; i < species[mon["name"]]["abilities"].length; i++){
+                                if(mon["ability"] === species[mon["name"]]["abilities"][i]){
+                                    mon["ability"] = i
+                                    break
+                                }
+                            }
+                        }
+                        if(typeof mon["ability"] != typeof 0){
                             mon["ability"] = 0
                         }
                         if(!mon["ivs"]){
@@ -322,6 +244,9 @@ async function regexTrainersParties(textTrainersParties, [conversionTable, train
                         }
                         if(!mon["nature"]){
                             mon["nature"] = "NATURE_DOCILE"
+                        }
+                        if(!mon["moves"]){
+                            mon["moves"] = getWildPokemonLearnsets(mon["name"], mon["lvl"])
                         }
                         if(!trainers[zone][trainer]["party"][difficulty]){
                             trainers[zone][trainer]["party"][difficulty] = []
@@ -350,6 +275,122 @@ async function regexTrainersParties(textTrainersParties, [conversionTable, train
         }
     })
 }
+
+
+
+
+
+
+
+
+
+function getWildPokemonLearnsets(name, lvl){
+    let validMoves = []
+    let moves = []
+
+    for(let i = 0, j = species[name]["levelUpLearnsets"].length; i < j; i++){
+        if(species[name]["levelUpLearnsets"][i][1] > lvl){
+            break
+        }
+        validMoves.push(species[name]["levelUpLearnsets"][i][0])
+    }
+
+    for(let i = validMoves.length, j = 0; i > 0 && j < 4; i--, j++){
+        if(!moves.includes(validMoves[i - 1])){
+            moves.push(validMoves[i - 1])
+        }
+    }
+
+    return moves
+}
+
+
+
+
+
+
+
+
+
+
+
+
+async function regexItems(textItems){
+    const lines = textItems.split("\n")
+    const regex = /.name|.description|.holdEffectParam|.price|.pocket/i
+    let item = null, conversionTable = {}
+
+    lines.forEach(line => {
+        const regexMatch = line.match(regex)
+        if(/\[\s*ITEM_\w+\s*\]/.test(line)){
+            item = line.match(/\[\s*(ITEM_\w+)\s*\]/)[1]
+            initItem(item)
+        }
+        else if(regexMatch){
+            const match = regexMatch[0]
+            if(match === ".name"){
+                items[item]["ingameName"] = line.match(/_\("(.*)"\)/)[1]
+            }
+            else if(match === ".description"){
+                const descMatch = line.match(/s\w+Desc/i)
+                if(descMatch){
+                    const desc = descMatch[0]
+                    if(!(desc in conversionTable)){
+                        conversionTable[desc] = [item]
+                    }
+                    else{
+                        conversionTable[desc].push(item)
+                    }
+                }
+            }
+            else if(match === ".holdEffectParam"){
+                items[item]["effect"] = line.match(/=\s*(.*)\s*,/)[1]
+            }
+            else if(match === ".price"){
+                items[item]["price"] = line.match(/\d+/)[0]
+            }
+            else if(match === ".pocket"){
+                items[item]["pocket"] = line.match(/POCKET_\w+/)[0]
+            }
+        }
+    })
+
+    return conversionTable
+}
+
+
+
+
+
+
+
+async function regexItemDescriptions(textItemDescriptions, conversionTable){
+    const lines = textItemDescriptions.split("\n")
+    let desc = null, description = ""
+
+    lines.forEach(line => {
+        const descMatch = line.match(/s\w+Desc/i)
+        if(descMatch){
+            desc = descMatch[0]
+        }
+        else if(/".*"/.test(line)){
+            description += line.match(/"(.*)"/)[1].replaceAll("-\\n", "").replaceAll("\\n", " ")
+        }
+
+        if(/"\s*\)\s*;/.test(line) && conversionTable[desc]){
+            conversionTable[desc].forEach(item => {
+                items[item]["description"] = description
+            })
+
+            desc = null
+            description = ""
+        }
+    })
+}
+
+
+
+
 
 
 
@@ -439,6 +480,23 @@ async function regexItemIcon(textItemIconTable, textItemsIcon){
            })
         }
     })
+
+    Object.keys(items).forEach(itemName => {
+        if(items[itemName]["url"] === ""){
+            if(iconToItem["gItemIcon_TM"].includes(`ITEM_${items[itemName]["ingameName"]}`) || iconToItem["gItemIcon_HM"].includes(`ITEM_${items[itemName]["ingameName"]}`)){
+                const moveMatch = itemName.match(/ITEM_(?:HM\d*_|TM\d*_)(\w+)/)
+                if(moveMatch){
+                    let move = `MOVE_${moveMatch[1]}`
+                    if(move === "MOVE_SOLARBEAM"){
+                        move = "MOVE_SOLAR_BEAM"
+                    }
+                    if(move in moves){
+                        items[itemName]["url"] = `https://raw.githubusercontent.com/ydarissep/dex-core/main/sprites/TM_${moves[move]["type"]}.png`
+                    }
+                }
+            }
+        }
+    })
 }
 
 
@@ -448,21 +506,46 @@ async function regexItemIcon(textItemIconTable, textItemsIcon){
 
 
 
-async function regexItemBallSripts(textItemBallScripts, textScripts){
+async function regexItemBallSripts(textItemBallScripts, textScripts, textScaledItems){
     const zones = textScripts.match(/data\/.*.inc/ig).toString()
+    let scalesItems = []
+    const scalesItemsMatch = textScaledItems.match(/GetScaledItem.*return\s+itemId/s)
+    if(scalesItemsMatch){
+        scalesItems = Array.from(new Set(scalesItemsMatch[0].match(/ITEM_\w+/g)))
+    }
+    for(let i = 0; i < scalesItems.length; i++){
+        if(!items[scalesItems[i]]["locations"]["Scaled"]){
+            items[scalesItems[i]]["locations"]["Scaled"] = []
+        }
+        items[scalesItems[i]]["locations"]["Scaled"].push("Random Overworld Pokeball")
+    }
 
     textItemBallScripts.match(/\w+\s*::.*?ITEM_\w+/igs).forEach(scriptMatch => {
-        const itemName = scriptMatch.match(/(?:finditem\s*)?(ITEM_\w+)/)[1]
-        const scriptNameArray = scriptMatch.match(/(.*?)::/)[1].split("_")
+        let itemName = scriptMatch.match(/(?:finditem\s*)?(ITEM_\w+)/)[1]
 
-        for(let i = 1; i < scriptNameArray.length; i++){
-            const zone = scriptNameArray.slice(0, -i).join("_")
-            if(zones.includes(zone) || zones.includes(zone.replaceAll("_", ""))){
-                if(!items[itemName]["locations"]["Find"]){
-                    items[itemName]["locations"]["Find"] = []
+        if(!(itemName in items)){
+            const regex = new RegExp(`${itemName}\\w+`)
+            const itemMatch = Object.keys(items).toString().match(regex)
+            if(itemMatch){
+                itemName = itemMatch[0]
+            }
+        }
+        if(!items[itemName]["locations"]["Find"]){
+            items[itemName]["locations"]["Find"] = []
+        }
+
+        if(!scalesItems.includes(itemName)){
+            const scriptNameArray = scriptMatch.match(/(.*?)::/)[1].split("_")
+
+            for(let i = 1; i < scriptNameArray.length; i++){
+                const zone = scriptNameArray.slice(0, -i).join("_")
+                if(zones.includes(zone) || zones.includes(zone.replaceAll("_", ""))){
+                    items[itemName]["locations"]["Find"].push(zone.replaceAll("_", "").replace(/([A-Z])/g, " $1").replace(/(\d+)/g, " $1").trim())
+                    break
                 }
-                items[itemName]["locations"]["Find"].push(zone.replaceAll("_", "").replace(/([A-Z])/g, " $1").replace(/(\d+)/g, " $1").trim())
-                break
+                if(i === scriptNameArray.length - 1){
+                    items[itemName]["locations"]["Find"].push("Unknown")
+                }
             }
         }
     })
@@ -488,6 +571,30 @@ async function getHeldItems(){
         }
     })
 }
+
+
+
+
+
+
+
+
+async function regexQuestItems(textQuest){
+    textQuest.match(/gText_SideQuestDesc_\d+\s*,\s*ITEM_\w+/g).forEach(quest => {
+        if(!/00/.test(quest)){
+            const descRegex = new RegExp(`${quest.match(/gText_SideQuestDesc_\d+/)[0]}.*_\\("(.*)"\\)`)
+            const questDesc = textQuest.match(descRegex)[1].replaceAll("-\\n", "").replaceAll("\\n", " ").replaceAll("\"", "")
+            const itemName = quest.match(/ITEM_\w+/)[0]
+
+            if(!items[itemName]["locations"]["Quest"]){
+                items[itemName]["locations"]["Quest"] = []
+            }
+            items[itemName]["locations"]["Quest"].push(questDesc)
+        }
+    })
+}
+
+
 
 
 
@@ -533,6 +640,60 @@ async function regexHiddenItems(textFlags){
         }
     })
 }
+
+
+
+
+
+
+
+
+
+async function regexTutorItems(textTutor){
+    const lines = textTutor.split("\n")
+    let scriptName = null, moveArray = [], zone = null
+
+    lines.forEach(line => {
+        line = line.trim()
+
+        if(/::/.test(line)){
+            scriptName = line
+        }
+        else if(line === "end"){
+            if(scriptName && moveArray.length > 0 && zone){
+                for(let i = 0; i < moveArray.length; i++){
+                    const move = moveArray[i]
+                    const tutorName = move.replace("MOVE_", "ITEM_TUTOR_")
+                    initItem(tutorName)
+                    if(!items[tutorName]["locations"]["Tutor"]){
+                        items[tutorName]["locations"]["Tutor"] = []
+                    }
+                    items[tutorName]["url"] = "https://raw.githubusercontent.com/ydarissep/dex-core/main/src/locations/sprites/Tutor.png"
+                    if(move in moves){
+                        items[tutorName]["description"] = moves[move]["description"].join("")
+                        items[tutorName]["pocket"] = "POCKET_TUTOR"
+                        items[tutorName]["url"] = `https://raw.githubusercontent.com/ydarissep/dex-core/main/sprites/TM_${moves[move]["type"]}.png`
+                    }
+                    items[tutorName]["locations"]["Tutor"].push(zone)
+                }
+            }
+
+            scriptName = null
+            moveArray = []
+            zone = null
+        }
+        else if(/MOVE_/.test(line)){
+            moveArray.push(line.match(/MOVE_\w+/)[0])
+        }
+        else if(scriptName && /MoveTutor_EventScript_OpenPartyMenu|EventScript_ConfirmMoveSelection/i.test(line)){
+            zone = scriptName.match(/(\w+)_EventScript/i)[1].replaceAll("_", " ").replace(/([A-Z])/g, " $1").replace(/(\d+)/g, " $1").trim()
+        }
+    })
+}
+
+
+
+
 
 
 
@@ -594,11 +755,11 @@ function initScriptsLocations(speciesName, zone, method){
 
 function regexScript(text, scriptPath, tradeArray, specialFunctions, regexSpecialFunctions){
     let map = false
-    let zone = sanitizeString(scriptPath.match(/(\w+).inc/i)[1].replaceAll("_", " ").replace(/([A-Z])/g, " $1").replace(/(\d+)/g, " $1").trim())
+    let zone = sanitizeString(scriptPath.match(/(\w+).\w+/i)[1].replaceAll("_", " ").replace(/([A-Z])/g, " $1").replace(/(\d+)/g, " $1").trim())
 
-    if(/data\/maps\/(.*)\/scripts.inc/i.test(scriptPath)){
+    if(/data\/maps\/(.*)\/scripts.\w+/i.test(scriptPath)){
         map = true
-        zone = scriptPath.match(/data\/maps\/(.*)\/scripts.inc/i)[1].replaceAll("_", "").replace(/([A-Z])/g, " $1").replace(/(\d+)/g, " $1").trim()
+        zone = scriptPath.match(/data\/maps\/(.*)\/scripts.\w+/i)[1].replaceAll("_", "").replace(/([A-Z])/g, " $1").replace(/(\d+)/g, " $1").trim()
     }
 
     if(map){
@@ -631,46 +792,58 @@ function regexScript(text, scriptPath, tradeArray, specialFunctions, regexSpecia
             })
         }
     }
-
-    const tutorMatch = Array.from(new Set(text.match(/TUTOR_MOVE_\w+/g)))
-    for(let k = 0; k < tutorMatch.length; k++){
-        const tutorName = `ITEM_${tutorMatch[k].replace("MOVE_", "")}`
-        const move = tutorMatch[k].match(/TUTOR_(MOVE_\w+)/)[1]
-        initItem(tutorName)
-        if(!items[tutorName]["locations"]["Tutor"]){
-            items[tutorName]["locations"]["Tutor"] = []
-        }
-        items[tutorName]["url"] = "https://raw.githubusercontent.com/ydarissep/dex-core/main/src/locations/sprites/Tutor.png"
-        if(move in moves){
-            items[tutorName]["description"] = moves[move]["description"].join("")
-            items[tutorName]["pocket"] = "POCKET_TUTOR"
-            items[tutorName]["url"] = `https://raw.githubusercontent.com/ydarissep/dex-core/main/sprites/TM_${moves[move]["type"]}.png`
-        }
-        items[tutorName]["locations"]["Tutor"].push(zone)
-    }
     
     const giveitemMatch = Array.from(new Set(text.match(/giveitem\s+ITEM_\w+/g)))
     for(let k = 0; k < giveitemMatch.length; k++){
-        const itemName = giveitemMatch[k].match(/ITEM_\w+/)[0]
+        let itemName = giveitemMatch[k].match(/ITEM_\w+/)[0]
+        if(!(itemName in items)){
+            const regex = new RegExp(`${itemName}\\w+`)
+            const itemMatch = Object.keys(items).toString().match(regex)
+            if(itemMatch){
+                itemName = itemMatch[0]
+            }
+        }
         if(!items[itemName]["locations"]["Gift"]){
             items[itemName]["locations"]["Gift"] = []
         }
-        items[itemName]["locations"]["Gift"].push(zone)
+        if(!items[itemName]["locations"]["Gift"].includes(zone)){
+            items[itemName]["locations"]["Gift"].push(zone)
+        }
     }
 
     const buyitemMatch = Array.from(new Set(text.match(/.2byte\s+ITEM_\w+/g)))
     for(let k = 0; k < buyitemMatch.length; k++){
-        const itemName = buyitemMatch[k].match(/ITEM_\w+/)[0]
+        let itemName = buyitemMatch[k].match(/ITEM_\w+/)[0]
+        if(!(itemName in items)){
+            const regex = new RegExp(`${itemName}\\w+`)
+            const itemMatch = Object.keys(items).toString().match(regex)
+            if(itemMatch){
+                itemName = itemMatch[0]
+            }
+        }
         if(!items[itemName]["locations"]["Buy"]){
             items[itemName]["locations"]["Buy"] = []
         }
-        items[itemName]["locations"]["Buy"].push(zone)
+        if(!items[itemName]["locations"]["Buy"].includes(zone)){
+            items[itemName]["locations"]["Buy"].push(zone)
+        }
     }
 
     if(/\s+givemon\s+|\s+giveegg\s+/i.test(text)){
         const giveMatch = Array.from(new Set(text.match(/givemon\s*SPECIES_\w+|giveegg\s*SPECIES_\w+/g)))
         for(let k = 0; k < giveMatch.length; k++){
             initScriptsLocations(giveMatch[k].match(/SPECIES_\w+/)[0], zone, "Gift")
+        }
+
+        const giveItemMatch = Array.from(new Set(text.match(/givemon\s*SPECIES_\w+\s*,\s*\d+\s*,\s*ITEM_\w+/g)))
+        for(let k = 0; k < giveItemMatch.length; k++){
+            const itemName = giveItemMatch[k].match(/ITEM_\w+/)[0]
+            if(!items[itemName]["locations"]["Held"]){
+                items[itemName]["locations"]["Held"] = []
+            }
+            if(!items[itemName]["locations"]["Held"].includes(zone)){
+                items[itemName]["locations"]["Held"].push(zone)
+            }
         }
 
         const specialFunctionMatch = Array.from(new Set(text.match(regexSpecialFunctions)))

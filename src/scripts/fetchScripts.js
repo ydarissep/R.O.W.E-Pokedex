@@ -31,7 +31,10 @@ async function getItemBallSripts(textScripts){
     const rawItemBallSripts = await fetch(`https://raw.githubusercontent.com/${repo}/data/scripts/item_ball_scripts.inc`)
     const textItemBallScripts = await rawItemBallSripts.text()
 
-    await regexItemBallSripts(textItemBallScripts, textScripts)
+    const rawScaledItems = await fetch(`https://raw.githubusercontent.com/${repo}/src/level_scaling.c`)
+    const textScaledItems = await rawScaledItems.text()
+
+    await regexItemBallSripts(textItemBallScripts, textScripts, textScaledItems)
 }
 
 async function getHiddenItems(){
@@ -39,6 +42,20 @@ async function getHiddenItems(){
     const textFlags = await rawFlags.text()
 
     await regexHiddenItems(textFlags)
+}
+
+async function getQuestItems(){
+    const rawQuest = await fetch(`https://raw.githubusercontent.com/${repo}/src/quests.c`)
+    const textQuest = await rawQuest.text()
+
+    await regexQuestItems(textQuest)
+}
+
+async function getTutorItems(){
+    const rawTutor = await fetch(`https://raw.githubusercontent.com/${repo}/data/scripts/move_tutors.inc`)
+    const textTutor = await rawTutor.text()
+
+    await regexTutorItems(textTutor)
 }
 
 async function getItemsIcon(){
@@ -66,7 +83,6 @@ async function buildScriptsObjs(){
     window.trainers = {}
     window.items = {}
 
-    /*
     await getItems()
 
     await getScripts()
@@ -76,8 +92,9 @@ async function buildScriptsObjs(){
     await getItemsIcon()
     await getHiddenItems()
     await getHeldItems()
+    await getQuestItems()
+    await getTutorItems()
     await bugFixTrainers()
-    */
 
     localStorage.setItem("trainers", LZString.compressToUTF16(JSON.stringify(trainers)))
     localStorage.setItem("items", LZString.compressToUTF16(JSON.stringify(items)))

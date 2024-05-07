@@ -1,5 +1,5 @@
-window.repo = "BelialClover/RoweRepo/main"
-window.checkUpdate = "4 ROWE"
+window.repo = "BelialClover/RoweSource/main"
+window.checkUpdate = "5 ROWE"
 
 fetch('https://raw.githubusercontent.com/ydarissep/dex-core/main/index.html').then(async response => {
 	return response.text()
@@ -20,6 +20,7 @@ fetch('https://raw.githubusercontent.com/ydarissep/dex-core/main/index.html').th
         return response.text()
     }).then(async text => {
         await eval.call(window,text)
+        document.getElementById("trainersButton").classList.add("hide")
     }).catch(error => {
         console.warn(error)
     })    
