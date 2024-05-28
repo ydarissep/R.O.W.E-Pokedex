@@ -28,7 +28,6 @@ async function getLevelUpLearnsets(species){
 }
 
 async function getTMHMLearnsets(species){
-    footerP("Fetching TMHM learnsets")
     const rawTMHMLearnsets = await fetch(`https://raw.githubusercontent.com/${repo}/src/data/pokemon/tmhm_learnsets.h`)
     const textTMHMLearnsets = await rawTMHMLearnsets.text()
 
@@ -59,7 +58,6 @@ async function getEggMovesLearnsets(species){
 }
 
 async function getTutorLearnsets(species){
-    footerP("Fetching tutor learnsets")
     const rawTutorLearnsets = await fetch(`https://raw.githubusercontent.com/${repo}/src/data/pokemon/tutor_learnsets.h`)
     const textTutorLearnsets = await rawTutorLearnsets.text()
 
@@ -196,15 +194,6 @@ async function fetchSpeciesObj(){
     window.sprites = {}
     window.speciesTracker = []
 
-    await Object.keys(species).forEach(async name => {
-        if(localStorage.getItem(`${name}`)){
-            sprites[name] = await LZString.decompressFromUTF16(localStorage.getItem(`${name}`))
-            if(sprites[name].length < 500){
-                localStorage.removeItem(name)
-                spriteRemoveBgReturnBase64(name, species)
-            }
-        }
-    })
     for(let i = 0, j = Object.keys(species).length; i < j; i++){
         speciesTracker[i] = {}
         speciesTracker[i]["key"] = Object.keys(species)[i]
