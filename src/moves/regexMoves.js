@@ -40,7 +40,9 @@ function regexMovesDescription(textMovesDescription, moves){
 
                     if(conversionTable[conversionDescription] !== undefined){
                         for(let i = 0; i < conversionTable[conversionDescription].length; i++){
-                            moves[conversionTable[conversionDescription][i]]["description"].push(description.replaceAll("\\n", " "))
+                            if(moves[conversionTable[conversionDescription][i]]){
+                                moves[conversionTable[conversionDescription][i]]["description"].push(description.replaceAll("\\n", " "))
+                            }
                         }
                     }
                 }

@@ -8,13 +8,8 @@ async function getAbilities(abilities){
 
 async function buildAbilitiesObj(){
     let abilities = {}
-    try{
-        abilities = await getAbilities(abilities) 
-    }
-    catch(e){
-        console.log(e.message)
-        console.log(e.stack)
-    }
+
+    abilities = await getAbilities(abilities) 
 
     await localStorage.setItem("abilities", LZString.compressToUTF16(JSON.stringify(abilities)))
     return abilities

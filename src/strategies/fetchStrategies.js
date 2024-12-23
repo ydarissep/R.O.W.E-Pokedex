@@ -11,13 +11,8 @@ async function getStrategies(strategies){
 
 async function buildStrategiesObj(){
     let strategies = {}
-    try{
-        //strategies = await getStrategies(strategies)
-    }
-    catch(e){
-        console.log(e.message)
-        console.log(e.stack)
-    }
+
+    //strategies = await getStrategies(strategies)
 
     //await localStorage.setItem("strategies", LZString.compressToUTF16(JSON.stringify(strategies)))
     return strategies

@@ -347,7 +347,7 @@ async function regexItems(textItems){
                 items[item]["effect"] = line.match(/=\s*(.*)\s*,/)[1]
             }
             else if(match === ".price"){
-                items[item]["price"] = line.match(/\d+/)[0]
+                //items[item]["price"] = line.match(/\d+/)[0]
             }
             else if(match === ".pocket"){
                 items[item]["pocket"] = line.match(/POCKET_\w+/)[0]
@@ -509,7 +509,7 @@ async function regexItemIcon(textItemIconTable, textItemsIcon){
 async function regexItemBallSripts(textItemBallScripts, textScripts, textScaledItems){
     const zones = textScripts.match(/data\/.*.inc/ig).toString()
     let scalesItems = []
-    const scalesItemsMatch = textScaledItems.match(/GetScaledItem.*return\s+itemId/s)
+    const scalesItemsMatch = textScaledItems.match(/sScaledItemsByBadges.*?}\s*;/is)
     if(scalesItemsMatch){
         scalesItems = Array.from(new Set(scalesItemsMatch[0].match(/ITEM_\w+/g)))
     }
@@ -580,16 +580,16 @@ async function getHeldItems(){
 
 
 async function regexQuestItems(textQuest){
-    textQuest.match(/gText_SideQuestDesc_\d+\s*,\s*ITEM_\w+/g).forEach(quest => {
-        if(!/00/.test(quest)){
-            const descRegex = new RegExp(`${quest.match(/gText_SideQuestDesc_\d+/)[0]}.*_\\("(.*)"\\)`)
-            const questDesc = textQuest.match(descRegex)[1].replaceAll("-\\n", "").replaceAll("\\n", " ").replaceAll("\"", "")
-            const itemName = quest.match(/ITEM_\w+/)[0]
-
-            if(!items[itemName]["locations"]["Quest"]){
-                items[itemName]["locations"]["Quest"] = []
+    textQuest.match(/\[ACHIEVEMENT_\w+\].*?}/gs).forEach(quest => {
+        const itemMatch = quest.match(/reward\s*=\s*(ITEM_\w+)/)
+        if(itemMatch){
+            const descMatch = quest.match(/desc\s*=\s*_\(\W(.*?)\W\)/)
+            if(descMatch){
+                if(!items[itemMatch[1]]["locations"]["Quest"]){
+                    items[itemMatch[1]]["locations"]["Quest"] = []
+                }
+                items[itemMatch[1]]["locations"]["Quest"].push(descMatch[1].replaceAll("-\\n", "").replaceAll("\\n", " "))
             }
-            items[itemName]["locations"]["Quest"].push(questDesc)
         }
     })
 }
@@ -849,7 +849,9 @@ function regexScript(text, scriptPath, tradeArray, specialFunctions, regexSpecia
         const specialFunctionMatch = Array.from(new Set(text.match(regexSpecialFunctions)))
         for(let k = 0; k < specialFunctionMatch.length; k++){
             specialFunctions[specialFunctionMatch[k]].forEach(speciesName => {
-                initScriptsLocations(speciesName, zone, "Gift")
+                if(speciesName in species){
+                    initScriptsLocations(speciesName, zone, "Gift")
+                }
             })
         }
     }

@@ -15,14 +15,9 @@ async function getGameCornerLocations(locations){
 
 async function buildLocationsObj(){
     let locations = {}
-    try{
-        locations = await getWildLocations(locations)
-        //locations = await getGameCornerLocations(locations)
-    }
-    catch(e){
-        console.log(e.message)
-        console.log(e.stack)
-    }
+
+    locations = await getWildLocations(locations)
+    //locations = await getGameCornerLocations(locations)
     
     await localStorage.setItem("locations", LZString.compressToUTF16(JSON.stringify(locations)))
     return locations

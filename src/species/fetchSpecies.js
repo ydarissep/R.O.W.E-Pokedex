@@ -84,33 +84,6 @@ async function getChanges(species, url){
     return regexChanges(textChanges, species)
 }
 
-async function cleanSpecies(species){
-    footerP("Cleaning up...")
-    await Object.keys(species).forEach(name => {
-        if(name === "SPECIES_WYRDEER" || name === "SPECIES_URSALUNA" || name === "SPECIES_BASCULEGION" || name === "SPECIES_OVERQWIL" || name === "SPECIES_QWILFISH_HUSIAN"){
-            for (let i = 0; i < species[name]["forms"].length; i++){
-                const targetSpecies = species[name]["forms"][i]
-                for (let j = 0; j < species[targetSpecies]["forms"].length; j++){
-                    if(species[targetSpecies]["forms"][j] === name){
-                        species[targetSpecies]["forms"].splice(j, 1)
-                    }
-                }
-            }
-            for (let i = 0; i < species[name]["evolutionLine"].length; i++){
-                const targetSpecies = species[name]["evolutionLine"][i]
-                for (let j = 0; j < species[targetSpecies]["evolutionLine"].length; j++){
-                    if(species[targetSpecies]["evolutionLine"][j] === name){
-                        species[targetSpecies]["evolutionLine"].splice(j, 1)
-                    }
-                }
-            }
-            delete species[name]
-        }
-    })
-
-    return species
-}
-
 
 
 
@@ -119,35 +92,29 @@ async function cleanSpecies(species){
 
 async function buildSpeciesObj(){
     let species = {}
-    try{
-        species = await getSpecies(species)
-        species = await initializeSpeciesObj(species)
-        species = await getEvolution(species)
-        species = await getForms(species) // should be called in that order until here
-        species = await getBaseStats(species)
-        species = await getChanges(species, "https://raw.githubusercontent.com/rh-hideout/pokeemerald-expansion/e22ac5161723e7baf711ac66fab28c8feff2cd85/src/data/pokemon/species_info.h")
-        species = await getLevelUpLearnsets(species)
-        species = await getTMHMLearnsets(species)
-        species = await getEggMovesLearnsets(species)
-        species = await getTutorLearnsets(species)
-        species = await getSprite(species)
 
-        species = await cleanSpecies(species)
+    species = await getSpecies(species)
+    species = await initializeSpeciesObj(species)
+    species = await getEvolution(species)
+    species = await getForms(species) // should be called in that order until here
+    species = await getBaseStats(species)
+    species = await getChanges(species, "https://raw.githubusercontent.com/rh-hideout/pokeemerald-expansion/e22ac5161723e7baf711ac66fab28c8feff2cd85/src/data/pokemon/species_info.h")
+    species = await getLevelUpLearnsets(species)
+    species = await getTMHMLearnsets(species)
+    species = await getEggMovesLearnsets(species)
+    species = await getTutorLearnsets(species)
+    species = await getSprite(species)
 
-        Object.keys(species).forEach(name => {
-            if(species[name]["type1"] === "TYPE_DRAGON" || species[name]["type2"] === "TYPE_DRAGON"){
-                if(!species[name]["tutorLearnsets"].includes("MOVE_DRACO_METEOR"))
-                    species[name]["tutorLearnsets"].push("MOVE_DRACO_METEOR")
-            }
-            if(speciesHasType3(species[name])){
-                species[name]["type3"] = speciesHasType3(species[name])
-            }
-        })
-    }
-    catch(e){
-        console.log(e.message)
-        console.log(e.stack)
-    }
+    Object.keys(species).forEach(name => {
+        if(species[name]["type1"] === "TYPE_DRAGON" || species[name]["type2"] === "TYPE_DRAGON"){
+            if(!species[name]["tutorLearnsets"].includes("MOVE_DRACO_METEOR"))
+                species[name]["tutorLearnsets"].push("MOVE_DRACO_METEOR")
+        }
+        if(speciesHasType3(species[name])){
+            species[name]["type3"] = speciesHasType3(species[name])
+        }
+    })
+
     await localStorage.setItem("species", LZString.compressToUTF16(JSON.stringify(species)))
     return species
 }

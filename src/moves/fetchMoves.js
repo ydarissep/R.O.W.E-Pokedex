@@ -17,14 +17,9 @@ async function getMovesDescription(Moves){
 
 async function buildMovesObj(){
     let moves = {}
-    try{
-        moves = await getMoves(moves)
-        moves = await getMovesDescription(moves)
-    }
-    catch(e){
-        console.log(e.message)
-        console.log(e.stack)
-    }
+    
+    moves = await getMoves(moves)
+    moves = await getMovesDescription(moves)
 
     await localStorage.setItem("moves", LZString.compressToUTF16(JSON.stringify(moves)))
     return moves

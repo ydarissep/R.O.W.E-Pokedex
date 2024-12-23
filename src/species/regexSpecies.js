@@ -377,14 +377,17 @@ function regexLevelUpLearnsets(textLevelUpLearnsets, conversionTable, species){
         }
 
 
-        const matchLevelMove = line.match(/(\d+) *, *(MOVE_\w+)/i)
-        if(matchLevelMove){
-            const level = parseInt(matchLevelMove[1])
-            const move = matchLevelMove[2]
-            if(speciesArray)
-            {
-                for(let i = 0; i < speciesArray.length; i++)
-                    species[speciesArray[i]]["levelUpLearnsets"].push([move, level])
+        if(!/^\s*\/\//.test(line)){
+            const matchLevelMove = line.match(/(\d+) *, *(MOVE_\w+)/i)
+            if(matchLevelMove){
+                const level = parseInt(matchLevelMove[1])
+                const move = matchLevelMove[2]
+                if(speciesArray && move in moves)
+                {
+                    for(let i = 0; i < speciesArray.length; i++){
+                        species[speciesArray[i]]["levelUpLearnsets"].push([move, level])
+                    }
+                }
             }
         }
     })
@@ -400,7 +403,6 @@ function regexLevelUpLearnsets(textLevelUpLearnsets, conversionTable, species){
     })
     return species
 }
-
 
 
 
@@ -639,10 +641,10 @@ function regexSprite(textSprite, conversionTable, species){
             if(conversionTableString.includes(conversion)){
                 const speciesArray = conversionTable[conversion]
 
-                const matchPath = line.match(/graphics\/pokemon\/(\w+\/\w+\/\w+\/\w+\/\w+|\w+\/\w+\/\w+\/\w+|\w+\/\w+\/\w+|\w+\/\w+|\w+)\//i) // ¯\_(ツ)_/¯
+                const matchPath = line.match(/graphics\/pokemon\/(.*?)\./i)
                 if(matchPath){
-                    const path = matchPath[1]
-                    const url = `https://raw.githubusercontent.com/${repo}/graphics/pokemon/${path}/front.png`
+                    let path = matchPath[1]
+                    let url = `https://raw.githubusercontent.com/${repo}/graphics/pokemon/${path}.png`
                     for(let i = 0; i < conversionTable[conversion].length; i++){
                         species[speciesArray[i]]["sprite"] = url
                     }
