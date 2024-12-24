@@ -43,6 +43,14 @@ function regexWildLocations(jsonWildLocations, locations){
 		}
 	}
 
+	Object.keys(locations).forEach(location => {
+		Object.keys(locations[location]).forEach(method => {
+			if(method == "Day" && !Object.keys(locations[location]).includes("Night")){
+				locations[location]["Anytime"] = structuredClone(locations[location]["Day"])
+				delete locations[location]["Day"]
+			}
+		})
+	})
 
     return locations
 }
