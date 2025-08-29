@@ -14,6 +14,9 @@ function buildSpeciesPanelSignatureMove(name){
     if(species[name]["signature"]){
         speciesPanelSignatureTable.classList.remove("hide")
     }
+    else{
+        return
+    }
 
     while (speciesPanelSignatureTableTbody.firstChild)
         speciesPanelSignatureTableTbody.removeChild(speciesPanelSignatureTableTbody.firstChild)
