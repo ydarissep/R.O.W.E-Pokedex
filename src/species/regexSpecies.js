@@ -582,8 +582,9 @@ function regexSignature(textSignature, species){
                         if(matchDescription){
                             let description = ""
                             matchDescription[1].split(/\n/).forEach(line => {
-                                description += line.trim().replaceAll(/^"|"$/g, "").replaceAll("\\n", " ").replaceAll(/\s{2,}/g, " ")
+                                description += line.trim().replaceAll(/^"|"$/g, " ").replaceAll("\\n", " ")
                             })
+                            description = description.trim().replaceAll(/\s{2,}/g, " ")
 
                             species[speciesName]["signature"] = {}
                             species[speciesName]["signature"]["power"] = moves[move]["power"]
