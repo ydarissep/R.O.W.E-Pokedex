@@ -568,6 +568,59 @@ function regexForms(textForms, species){
 
 
 
+function regexSignature(textSignature, species){
+    let matchSpeciesSignatureBlock = textSignature.match(/\[\s*SPECIES_\w+\s*\].*?(?=\[\s*SPECIES_\w+\s*\]|$)/gs)
+    if(matchSpeciesSignatureBlock){
+        matchSpeciesSignatureBlock.forEach(signatureBlock => {
+            let speciesName = signatureBlock.match(/\[\s*(SPECIES_\w+)\s*\]/)[1]
+            if(speciesName in species){
+                let matchMoveName = signatureBlock.match(/\.move\s*=\s*(MOVE_\w+)/)
+                if(matchMoveName){
+                    let move = matchMoveName[1]
+                    if(move in moves){
+                        let matchDescription = signatureBlock.match(/.summaryScreen_description\s*=\s*_\(\s*(".*?")\s*\),/is)
+                        if(matchDescription){
+                            let description = ""
+                            matchDescription[1].split(/\n/).forEach(line => {
+                                description += line.trim().replaceAll(/^"|"$/g, "").replaceAll("\\n", " ").replaceAll(/\s{2,}/g, " ")
+                            })
+
+                            species[speciesName]["signature"] = {}
+                            species[speciesName]["signature"]["power"] = moves[move]["power"]
+                            species[speciesName]["signature"]["accuracy"] = moves[move]["accuracy"]
+                            species[speciesName]["signature"]["type"] = moves[move]["type"]
+                            species[speciesName]["signature"]["name"] = move
+                            species[speciesName]["signature"]["description"] = description
+                            let matchMoveEffect = signatureBlock.match(/\[\s*SIGNATURE_MOVE_EFFECT.*?\].*?}\s*,/gs)
+                            if(matchMoveEffect){
+                                matchMoveEffect.forEach(moveEffectBlock => {
+                                    if(/SIGNATURE_MOD_POWER/.test(moveEffectBlock) && !/\.argument|\.chance/.test(moveEffectBlock)){
+                                        species[speciesName]["signature"]["power"] = parseInt(moveEffectBlock.match(/.variable\s*=\s*(\d+)/)[1])
+                                    }
+                                    if(/SIGNATURE_MOD_ACCURACY/.test(moveEffectBlock) && !/\.argument|\.chance/.test(moveEffectBlock)){
+                                        species[speciesName]["signature"]["accuracy"] = parseInt(moveEffectBlock.match(/.variable\s*=\s*(\d+)/)[1])
+                                    }
+                                    if(/SIGNATURE_MOD_TYPE/.test(moveEffectBlock) && !/\.argument|\.chance/.test(moveEffectBlock)){
+                                        species[speciesName]["signature"]["type"] = moveEffectBlock.match(/.variable\s*=\s*(TYPE_\w+)/)[1]
+                                    }
+                                })
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    }
+
+    return species
+}
+
+
+
+
+
+
+
 
 function regexEggMovesLearnsets(textEggMoves, species){
     const lines = textEggMoves.split("\n")

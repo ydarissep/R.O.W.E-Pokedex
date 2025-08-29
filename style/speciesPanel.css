@@ -1,1 +1,71 @@
 @import url(https://ydarissep.github.io/dex-core/style/speciesPanel.css);
+
+#speciesPanelSignatureTable th:hover {
+  background: inherit !important;
+  cursor: default !important;
+}
+
+@media 
+only screen and (max-width: 550px) {
+  #speciesPanelSignatureTable, #speciesPanelSignatureTableTbody, #speciesPanelSignatureTableTbody tr {
+    display: block !important;
+  }
+
+  #speciesPanelSignatureTableTHead {
+    width: 100%;
+    display: table;
+  }
+
+  #speciesPanelSignatureTable caption {
+    width: 100%;
+  }
+
+  #speciesPanelSignatureTableTbody tr > :nth-child(1) {
+    width: 35%;
+    box-sizing: border-box;
+    display: inline-block;
+  }
+
+  #speciesPanelSignatureTableTbody tr > :nth-child(2) {
+    width: 17.5%;
+    box-sizing: border-box;
+    display: inline-block;
+  }
+
+  #speciesPanelSignatureTableTbody tr > :nth-child(3) {
+    width: 17.5%;
+    box-sizing: border-box;
+    display: inline-block;
+  }
+
+  #speciesPanelSignatureTableTbody tr > :nth-child(4) {
+    width: 10%;
+    box-sizing: border-box;
+    display: inline-block;
+  }
+
+  #speciesPanelSignatureTableTbody tr > :nth-child(5) {
+    width: 10%;
+    box-sizing: border-box;
+    display: inline-block;
+  }
+
+  #speciesPanelSignatureTableTbody tr > :nth-child(6) {
+    width: 10%;
+    box-sizing: border-box;
+    display: inline-block;
+  }
+
+  #speciesPanelSignatureTableTbody tr > :nth-child(7) {
+    width: 100%;
+    box-sizing: border-box;
+    display: inline-block;
+  }
+}
+
+@media 
+only screen and (max-width: 350px) {
+  #speciesPanelSignatureTableTbody {
+    font-size: 13px;
+  }
+}

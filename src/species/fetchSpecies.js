@@ -66,6 +66,13 @@ async function getTutorLearnsets(species){
     return regexTutorLearnsets(textTutorLearnsets, tutorLearnsetsConversionTable, species)
 }
 
+async function getSignature(species){
+    const rawSignature = await fetch(`https://raw.githubusercontent.com/${repo}/src/data/battle_moves_signature.h`)
+    const textSignature = await rawSignature.text()
+
+    return regexSignature(textSignature, species)
+}
+
 async function getSprite(species){
     const rawFrontPicTable = await fetch(`https://raw.githubusercontent.com/${repo}/src/data/pokemon_graphics/front_pic_table.h`)
     const textFrontPicTable = await rawFrontPicTable.text()
@@ -103,6 +110,7 @@ async function buildSpeciesObj(){
     species = await getTMHMLearnsets(species)
     species = await getEggMovesLearnsets(species)
     species = await getTutorLearnsets(species)
+    species = await getSignature(species)
     species = await getSprite(species)
 
     Object.keys(species).forEach(name => {
@@ -145,6 +153,7 @@ function initializeSpeciesObj(species){
         species[name]["evolution"] = []
         species[name]["evolutionLine"] = [name]
         species[name]["forms"] = []
+        species[name]["signature"] = null
         species[name]["sprite"] = ""
     }
     return species
