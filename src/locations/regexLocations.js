@@ -12,27 +12,27 @@ function regexWildLocations(jsonWildLocations, locations){
 
 			if(!(zone in locations)){
 				locations[zone] = {}
-			}
 
-			for(let j = 0; j < methodArrayWild.length; j++){
-				if(methodArrayWild[j] in wildEncounters[i]){
-					for(let k = 0; k < wildEncounters[i][methodArrayWild[j]]["mons"].length; k++){
+				for(let j = 0; j < methodArrayWild.length; j++){
+					if(methodArrayWild[j] in wildEncounters[i]){
+						for(let k = 0; k < wildEncounters[i][methodArrayWild[j]]["mons"].length; k++){
 
-						const method = replaceMethodString(methodArrayWild[j], k)
-						const name = wildEncounters[i][methodArrayWild[j]]["mons"][k]["species"]
+							const method = replaceMethodString(methodArrayWild[j], k)
+							const name = wildEncounters[i][methodArrayWild[j]]["mons"][k]["species"]
 
-						if(!(method in locations[zone])){
-							locations[zone][method] = {}
+							if(!(method in locations[zone])){
+								locations[zone][method] = {}
+							}
+
+
+							if(name in locations[zone][method]){
+								locations[zone][method][name] += returnRarity(method, k)
+							}
+							else{
+								locations[zone][method][name] = returnRarity(method, k)
+							}
+
 						}
-
-
-						if(name in locations[zone][method]){
-			    			locations[zone][method][name] += returnRarity(method, k)
-			    		}
-			    		else{
-			    			locations[zone][method][name] = returnRarity(method, k)
-			    		}
-
 					}
 				}
 			}
