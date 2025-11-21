@@ -7,10 +7,6 @@
 
 @media 
 only screen and (max-width: 550px) {
-  #speciesPanelSignatureTable, #speciesPanelSignatureTableTbody, #speciesPanelSignatureTableTbody tr {
-    display: block !important;
-  }
-
   #speciesPanelSignatureTableTHead {
     width: 100%;
     display: table;
