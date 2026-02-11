@@ -9,7 +9,9 @@ async function getAbilities(abilities){
 async function buildAbilitiesObj(){
     let abilities = {}
 
-    abilities = await getAbilities(abilities) 
+    abilities = await getAbilities(abilities)
+    /*await Promise.all([
+    ])*/
 
     await localStorage.setItem("abilities", LZString.compressToUTF16(JSON.stringify(abilities)))
     return abilities

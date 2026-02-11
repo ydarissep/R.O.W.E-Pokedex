@@ -19,7 +19,9 @@ async function buildMovesObj(){
     let moves = {}
     
     moves = await getMoves(moves)
-    moves = await getMovesDescription(moves)
+    await Promise.all([
+        getMovesDescription(moves)
+    ])
 
     await localStorage.setItem("moves", LZString.compressToUTF16(JSON.stringify(moves)))
     return moves

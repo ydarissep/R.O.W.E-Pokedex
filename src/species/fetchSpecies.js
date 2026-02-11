@@ -104,14 +104,16 @@ async function buildSpeciesObj(){
     species = await initializeSpeciesObj(species)
     species = await getEvolution(species)
     species = await getForms(species) // should be called in that order until here
-    species = await getBaseStats(species)
+    await Promise.all([
+        getBaseStats(species),
+        getLevelUpLearnsets(species),
+        getTMHMLearnsets(species),
+        getEggMovesLearnsets(species),
+        getTutorLearnsets(species),
+        getSignature(species),
+        getSprite(species)
+    ])
     species = await getChanges(species, "https://raw.githubusercontent.com/rh-hideout/pokeemerald-expansion/e22ac5161723e7baf711ac66fab28c8feff2cd85/src/data/pokemon/species_info.h")
-    species = await getLevelUpLearnsets(species)
-    species = await getTMHMLearnsets(species)
-    species = await getEggMovesLearnsets(species)
-    species = await getTutorLearnsets(species)
-    species = await getSignature(species)
-    species = await getSprite(species)
 
     Object.keys(species).forEach(name => {
         if(species[name]["type1"] === "TYPE_DRAGON" || species[name]["type2"] === "TYPE_DRAGON"){
