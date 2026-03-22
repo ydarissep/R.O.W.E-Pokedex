@@ -762,11 +762,13 @@ function regexScript(text, scriptPath, tradeArray, specialFunctions, regexSpecia
                 itemName = itemMatch[0]
             }
         }
-        if(!items[itemName]["locations"]["Gift"]){
-            items[itemName]["locations"]["Gift"] = []
-        }
-        if(!items[itemName]["locations"]["Gift"].includes(zone)){
-            items[itemName]["locations"]["Gift"].push(zone)
+        if (zone != "Data"){
+            if(!items[itemName]["locations"]["Gift"]){
+                items[itemName]["locations"]["Gift"] = []
+            }
+            if(!items[itemName]["locations"]["Gift"].includes(zone)){
+                items[itemName]["locations"]["Gift"].push(zone)
+            }
         }
     }
 
