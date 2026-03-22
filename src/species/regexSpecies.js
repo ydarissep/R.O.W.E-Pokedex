@@ -719,7 +719,10 @@ function getSpriteConversionTable(textFrontPicTable, species){
         const matchConversionSpecies = line.match(/(\w+) *, *(gMonFrontPic_\w+)/i)
         if(matchConversionSpecies){
 
-            const testSpecies = `SPECIES_${matchConversionSpecies[1]}`
+            let testSpecies = `SPECIES_${matchConversionSpecies[1]}`
+            if (testSpecies == "SPECIES_FLOETTE_MEGA"){
+                testSpecies = "SPECIES_FLOETTE_ETERNAL_MEGA"
+            }
             if(speciesString.includes(testSpecies)){
                 const species = testSpecies
                 const index = matchConversionSpecies[2]

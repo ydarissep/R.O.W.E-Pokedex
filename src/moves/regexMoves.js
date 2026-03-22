@@ -4,8 +4,7 @@ function regexMovesDescription(textMovesDescription, moves){
         matchMovesDescription.forEach(descriptionString => {
             let matchDescription = descriptionString.match(/(MOVE_\w+).*?COMPOUND_STRING\("(.*?)"\)/i)
             if (matchDescription[1] in moves){
-                console.log("test")
-                moves[matchDescription[1]]["description"] = matchDescription[2].split("\\n")
+                moves[matchDescription[1]]["description"] = [matchDescription[2].replaceAll("\\n", " ")]
             }
         })
     }
