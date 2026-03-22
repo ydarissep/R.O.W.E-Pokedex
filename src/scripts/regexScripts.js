@@ -790,13 +790,13 @@ function regexScript(text, scriptPath, tradeArray, specialFunctions, regexSpecia
         }
     }
 
-    if(/\s+givemon\s+|\s+giveegg\s+/i.test(text)){
-        const giveMatch = Array.from(new Set(text.match(/givemon\s*SPECIES_\w+|giveegg\s*SPECIES_\w+/g)))
+    if(/givemon|giveegg/i.test(text)){
+        const giveMatch = Array.from(new Set(text.match(/givemon\s*\(?\s*SPECIES_\w+|giveegg\s*SPECIES_\w+/g)))
         for(let k = 0; k < giveMatch.length; k++){
             initScriptsLocations(giveMatch[k].match(/SPECIES_\w+/)[0], zone, "Gift")
         }
 
-        const giveItemMatch = Array.from(new Set(text.match(/givemon\s*SPECIES_\w+\s*,\s*\d+\s*,\s*ITEM_\w+/g)))
+        const giveItemMatch = Array.from(new Set(text.match(/givemon\s*\(?\s*SPECIES_\w+\s*,\s*\d+\s*,\s*ITEM_\w+/g)))
         for(let k = 0; k < giveItemMatch.length; k++){
             const itemName = giveItemMatch[k].match(/ITEM_\w+/)[0]
             if(!items[itemName]["locations"]["Held"]){
