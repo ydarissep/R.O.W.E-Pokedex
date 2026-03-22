@@ -1,58 +1,14 @@
 function regexMovesDescription(textMovesDescription, moves){
-    const lines = textMovesDescription.split("\n")
-    let conversionTable = {}, descriptionFound = false, conversionDescription = undefined, english = false
-
-    lines.forEach(line => { // first go to get conversionTable
-        const matchMoves = line.match(/MOVE_\w+/i)
-        if(matchMoves){
-            const move = matchMoves[0]
-
-
-            const matchConversionDescription = line.match(/(s\w+Description) *\,/i)
-            if(matchConversionDescription){
-                const conversionDescription = matchConversionDescription[1]
-
-                if(conversionTable[conversionDescription] === undefined)
-                    conversionTable[conversionDescription] = [move]
-                else
-                    conversionTable[conversionDescription].push(move)
+    const matchMovesDescription = textMovesDescription.match(/MOVE_\w+.*?COMPOUND_STRING\(".*?"\)/gi)
+    if (matchMovesDescription){
+        matchMovesDescription.forEach(descriptionString => {
+            let matchDescription = descriptionString.match(/(MOVE_\w+).*?COMPOUND_STRING\("(.*?)"\)/i)
+            if (matchDescription[1] in moves){
+                console.log("test")
+                moves[matchDescription[1]]["description"] = matchDescription[2].split("\\n")
             }
-        }
-    })
-
-    lines.forEach(line => { // second go with conversionTable
-        if(/sNullDescription/.test(line)){
-            english = true
-        }
-
-        if(english){
-            const matchConversionDescription = line.match(/static *const *u\d+ *(s\w+Description)/i)
-            if(matchConversionDescription && conversionDescription !== matchConversionDescription[1]){
-                conversionDescription = matchConversionDescription[1]
-
-                descriptionFound = true
-            }
-
-            if(descriptionFound === true){
-                const matchDescription = line.match(/"(.*)"/i)
-                if(matchDescription){
-                    const description = matchDescription[1]
-
-                    if(conversionTable[conversionDescription] !== undefined){
-                        for(let i = 0; i < conversionTable[conversionDescription].length; i++){
-                            if(moves[conversionTable[conversionDescription][i]]){
-                                moves[conversionTable[conversionDescription][i]]["description"].push(description.replaceAll("\\n", " "))
-                            }
-                        }
-                    }
-                }
-            }
-
-            if(line.match(";"))
-                descriptionFound = false
-        }
-
-    })
+        })
+    }
 
     return moves
 }

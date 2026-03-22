@@ -318,7 +318,7 @@ function getWildPokemonLearnsets(name, lvl){
 async function regexItems(textItems){
     const lines = textItems.split("\n")
     const regex = /.name|.description|.holdEffectParam|.price|.pocket/i
-    let item = null, conversionTable = {}
+    let item = null
 
     lines.forEach(line => {
         const regexMatch = line.match(regex)
@@ -332,16 +332,7 @@ async function regexItems(textItems){
                 items[item]["ingameName"] = line.match(/_\("(.*)"\)/)[1]
             }
             else if(match === ".description"){
-                const descMatch = line.match(/s\w+Desc/i)
-                if(descMatch){
-                    const desc = descMatch[0]
-                    if(!(desc in conversionTable)){
-                        conversionTable[desc] = [item]
-                    }
-                    else{
-                        conversionTable[desc].push(item)
-                    }
-                }
+                items[item]["description"] = line.match(/FORMAT_ITEM_DESCRIPTION\("(.*)"\)/i)[1]
             }
             else if(match === ".holdEffectParam"){
                 items[item]["effect"] = line.match(/=\s*(.*)\s*,/)[1]
@@ -352,38 +343,6 @@ async function regexItems(textItems){
             else if(match === ".pocket"){
                 items[item]["pocket"] = line.match(/POCKET_\w+/)[0]
             }
-        }
-    })
-
-    return conversionTable
-}
-
-
-
-
-
-
-
-async function regexItemDescriptions(textItemDescriptions, conversionTable){
-    const lines = textItemDescriptions.split("\n")
-    let desc = null, description = ""
-
-    lines.forEach(line => {
-        const descMatch = line.match(/s\w+Desc/i)
-        if(descMatch){
-            desc = descMatch[0]
-        }
-        else if(/".*"/.test(line)){
-            description += line.match(/"(.*)"/)[1].replaceAll("-\\n", "").replaceAll("\\n", " ")
-        }
-
-        if(/"\s*\)\s*;/.test(line) && conversionTable[desc]){
-            conversionTable[desc].forEach(item => {
-                items[item]["description"] = description
-            })
-
-            desc = null
-            description = ""
         }
     })
 }

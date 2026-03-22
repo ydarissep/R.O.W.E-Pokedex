@@ -19,12 +19,7 @@ async function getItems(){
     const rawItems = await fetch(`https://raw.githubusercontent.com/${repo}/src/data/items.h`)
     const textItems = await rawItems.text()
 
-    const descriptionConversionTable = await regexItems(textItems)
-
-    const rawItemDescriptions = await fetch(`https://raw.githubusercontent.com/${repo}/src/data/text/item_descriptions.h`)
-    const textItemDescriptions = await rawItemDescriptions.text()
-
-    await regexItemDescriptions(textItemDescriptions, descriptionConversionTable)
+    await regexItems(textItems)
 }
 
 async function getItemBallSripts(textScripts){
