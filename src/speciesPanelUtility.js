@@ -42,6 +42,10 @@ function buildSpeciesPanelSignatureMove(name){
     splitContainer.append(splitIcon)
     row.append(splitContainer)
 
+    const level = document.createElement("td")
+    level.innerText = species[name]["signature"]["level"]
+    row.append(level)
+
     const power = document.createElement("td")
     power.className = "speciesPanelLearnsetsPower"
     if(species[name]["signature"]["power"] > 0){

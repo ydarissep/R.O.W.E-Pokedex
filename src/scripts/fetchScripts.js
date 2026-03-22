@@ -87,7 +87,7 @@ async function buildScriptsObjs(){
 
     await getScripts()
 
-    await getTrainers()
+    //await getTrainers()
 
     await Promise.all([
         getItemsIcon(),

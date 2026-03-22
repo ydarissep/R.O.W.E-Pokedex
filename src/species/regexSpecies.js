@@ -36,41 +36,6 @@ function regexSpecies(textSpecies, species){
 
 
 
-function speciesHasType3(speciesObj){
-    for(let i = 0, j = speciesObj["innates"].length; i < j; i++){
-        if(speciesObj["innates"][i] === "ABILITY_TERAVOLT"){
-            return "TYPE_ELECTRIC"
-        }
-        else if(speciesObj["innates"][i] === "ABILITY_TURBOBLAZE"){
-            return "TYPE_FIRE"
-        }
-        else if(speciesObj["innates"][i] === "ABILITY_AQUATIC"){
-            return "TYPE_WATER"
-        }
-        else if(speciesObj["innates"][i] === "ABILITY_DRAGONFLY" || speciesObj["innates"][i] === "ABILITY_HALF_DRAKE"){
-            return "TYPE_DRAGON"
-        }
-        else if(speciesObj["innates"][i] === "ABILITY_GROUNDED"){
-            return "TYPE_GROUND"
-        }
-        else if(speciesObj["innates"][i] === "ABILITY_ICE_AGE"){
-            return "TYPE_ICE"
-        }
-        else if(speciesObj["innates"][i] === "ABILITY_METALLIC"){
-            return "TYPE_STEEL"
-        }
-        else if(speciesObj["innates"][i] === "ABILITY_PHANTOM"){
-            return "TYPE_GHOST"
-        }
-    }
-    return false
-}
-
-
-
-
-
-
 
 function regexBaseStats(textBaseStats, species){
     const lines = textBaseStats.split("\n")
@@ -158,6 +123,87 @@ function regexBaseStats(textBaseStats, species){
 
 
 
+
+
+
+function regexSpecialDeltaStats(textSpecialDeltaStats, species){
+    let highestID = 0
+    Object.keys(species).forEach(name => {
+        if (species[name]["ID"] > highestID && species[name]["baseSpeed"] > 0){
+            highestID = species[name]["ID"]
+        }
+    })
+    
+    const matchDeltaBaseStats = textSpecialDeltaStats.match(/gDeltaBaseStats.*?}\s*;/is)
+    if (matchDeltaBaseStats){
+        const matchSpeciesDeltaStats = matchDeltaBaseStats[0].match(/SPECIES_\w+.*?(?=SPECIES_\w+|}\s*;)/igs)
+        if (matchSpeciesDeltaStats){
+            matchSpeciesDeltaStats.forEach(speciesDeltaStats => {
+                const matchSpeciesName = speciesDeltaStats.match(/SPECIES_\w+/)
+                if (matchSpeciesName){
+                    const matchBaseAttack = speciesDeltaStats.match(/baseAttack\s*=\s*(\d+)/i)
+                    const matchBaseDefense = speciesDeltaStats.match(/baseDefense\s*=\s*(\d+)/i)
+                    const matchBaseSpAttack = speciesDeltaStats.match(/baseSpAttack\s*=\s*(\d+)/i)
+                    const matchBaseSpDefense = speciesDeltaStats.match(/baseSpDefense\s*=\s*(\d+)/i)
+                    const matchBaseSpeed = speciesDeltaStats.match(/baseSpeed\s*=\s*(\d+)/i)
+                    const matchType1 = speciesDeltaStats.match(/type1\s*=\s*(TYPE_\w+)/i)
+                    const matchType2 = speciesDeltaStats.match(/type2\s*=\s*(TYPE_\w+)/i)
+                    const matchAbilities = speciesDeltaStats.match(/abilities\s*=\s*\{(ABILITY_\w+)(\s*,\s*(ABILITY_\w+))?/i)
+                    const matchHiddenAbility = speciesDeltaStats.match(/abilityHidden\s*=\s*(ABILITY\w+)/i)
+
+                    if (matchBaseAttack, matchBaseDefense, matchBaseSpAttack, matchBaseSpDefense, matchBaseSpeed){
+                        const speciesDeltaName = `${matchSpeciesName[0]}_DELTA`
+                        species[matchSpeciesName[0]]["forms"].push(speciesDeltaName)
+                        species[matchSpeciesName[0]]["evolutionLine"].forEach(target => {
+                            species[target]["evolutionLine"].push(speciesDeltaName)
+                        })
+                        species[matchSpeciesName[0]]["evolution"].push(["EVO_DELTA_EVOLUTION", "ITEM_DELTA_ORB", speciesDeltaName])
+                        species[speciesDeltaName] = structuredClone(species[matchSpeciesName[0]])
+                        highestID++
+                        species[speciesDeltaName]["ID"] = highestID
+
+                        species[speciesDeltaName]["baseAttack"] = parseInt(matchBaseAttack[1])
+                        species[speciesDeltaName]["baseDefense"] = parseInt(matchBaseDefense[1])
+                        species[speciesDeltaName]["baseSpAttack"] = parseInt(matchBaseSpAttack[1])
+                        species[speciesDeltaName]["baseSpDefense"] = parseInt(matchBaseSpDefense[1])
+                        species[speciesDeltaName]["baseSpeed"] = parseInt(matchBaseSpeed[1])
+
+                        if (matchType1){
+                            species[speciesDeltaName]["type1"] = matchType1[1]
+                        }
+                        if (matchType2){
+                            species[speciesDeltaName]["type2"] = matchType2[1]
+                        }
+                        if (matchAbilities){
+                            if (matchAbilities[1]){
+                                species[speciesDeltaName]["abilities"][0] = matchAbilities[1]
+                            }
+                            if (matchAbilities[3]){
+                                species[speciesDeltaName]["abilities"][1] = matchAbilities[3]
+                            }
+                        }
+                        if (matchHiddenAbility){
+                            species[speciesDeltaName]["abilities"][2] = matchHiddenAbility[1]
+                        }
+
+                        species[speciesDeltaName] = sanitizeSpeciesDelta(species[speciesDeltaName])
+                    }
+                }
+            })
+        }
+    }
+
+
+    return species
+}
+function sanitizeSpeciesDelta(speciesDelta){
+    speciesDelta["changes"] = []
+    speciesDelta["evolution"] = []
+    speciesDelta["name"] += "_DELTA"
+    speciesDelta["BST"] = speciesDelta["baseHP"] + speciesDelta["baseAttack"] + speciesDelta["baseDefense"] + speciesDelta["baseSpAttack"] + speciesDelta["baseSpDefense"] + speciesDelta["baseSpeed"]
+
+    return speciesDelta
+}
 
 
 
@@ -494,7 +540,7 @@ function regexEvolution(textEvolution, species){
 
         const matchEvoInfo = line.match(/(\w+), *(\w+), *(\w+)/)
         if(matchEvoInfo){
-            const method = matchEvoInfo[1]
+            const method = matchEvoInfo[1].replace("_EXIOLITE", "")
             const condition = matchEvoInfo[2]
             const targetSpecies = matchEvoInfo[3]
             species[name]["evolution"].push([method, condition, targetSpecies])
@@ -569,16 +615,16 @@ function regexForms(textForms, species){
 
 
 function regexSignature(textSignature, species){
-    let matchSpeciesSignatureBlock = textSignature.match(/\[\s*SPECIES_\w+\s*\].*?(?=\[\s*SPECIES_\w+\s*\]|$)/gs)
+    const matchSpeciesSignatureBlock = textSignature.match(/\[\s*SPECIES_\w+\s*\].*?(?=\[\s*SPECIES_\w+\s*\]|$)/gs)
     if(matchSpeciesSignatureBlock){
         matchSpeciesSignatureBlock.forEach(signatureBlock => {
-            let speciesName = signatureBlock.match(/\[\s*(SPECIES_\w+)\s*\]/)[1]
+            const speciesName = signatureBlock.match(/\[\s*(SPECIES_\w+)\s*\]/)[1]
             if(speciesName in species){
-                let matchMoveName = signatureBlock.match(/\.move\s*=\s*(MOVE_\w+)/)
+                const matchMoveName = signatureBlock.match(/\.move\s*=\s*(MOVE_\w+)/)
                 if(matchMoveName){
-                    let move = matchMoveName[1]
+                    const move = matchMoveName[1]
                     if(move in moves){
-                        let matchDescription = signatureBlock.match(/.summaryScreen_description\s*=\s*_\(\s*(".*?")\s*\),/is)
+                        let matchDescription = signatureBlock.match(/DEFINE_SIGNATURE_MOVE_DESCRIPTION\s*\(\s*"(.*?)"/is)
                         if(matchDescription){
                             let description = ""
                             matchDescription[1].split(/\n/).forEach(line => {
@@ -587,12 +633,13 @@ function regexSignature(textSignature, species){
                             description = description.trim().replaceAll(/\s{2,}/g, " ")
 
                             species[speciesName]["signature"] = {}
+                            species[speciesName]["signature"]["level"] = 1
                             species[speciesName]["signature"]["power"] = moves[move]["power"]
                             species[speciesName]["signature"]["accuracy"] = moves[move]["accuracy"]
                             species[speciesName]["signature"]["type"] = moves[move]["type"]
                             species[speciesName]["signature"]["name"] = move
                             species[speciesName]["signature"]["description"] = description
-                            let matchMoveEffect = signatureBlock.match(/\[\s*SIGNATURE_MOVE_EFFECT.*?\].*?}\s*,/gs)
+                            const matchMoveEffect = signatureBlock.match(/\[\s*SIGNATURE_MOVE_EFFECT.*?\].*?}\s*,/gs)
                             if(matchMoveEffect){
                                 matchMoveEffect.forEach(moveEffectBlock => {
                                     if(/SIGNATURE_MOD_POWER/.test(moveEffectBlock) && !/\.argument|\.chance/.test(moveEffectBlock)){
@@ -605,6 +652,10 @@ function regexSignature(textSignature, species){
                                         species[speciesName]["signature"]["type"] = moveEffectBlock.match(/.variable\s*=\s*(TYPE_\w+)/)[1]
                                     }
                                 })
+                            }
+                            const matchUnlockedLevel = signatureBlock.match(/unlockedLevel\s*=\s*(\d+)/i)
+                            if (matchUnlockedLevel){
+                                species[speciesName]["signature"]["level"] = parseInt(matchUnlockedLevel[1])
                             }
                         }
                     }

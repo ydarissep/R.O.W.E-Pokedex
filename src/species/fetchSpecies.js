@@ -10,6 +10,7 @@ async function getSpecies(species){
 async function getBaseStats(species){
     const rawBaseStats = await fetch(`https://raw.githubusercontent.com/${repo}/src/data/pokemon/base_stats.h`)
     const textBaseStats = await rawBaseStats.text()
+
     return regexBaseStats(textBaseStats, species)
 }
 
@@ -22,7 +23,6 @@ async function getLevelUpLearnsets(species){
 
 
     const levelUpLearnsetsConversionTable = getLevelUpLearnsetsConversionTable(textLevelUpLearnsetsPointers)
-
 
     return regexLevelUpLearnsets(textLevelUpLearnsets, levelUpLearnsetsConversionTable, species)
 }
@@ -91,6 +91,15 @@ async function getChanges(species, url){
     return regexChanges(textChanges, species)
 }
 
+async function getDeltaStats(species){
+    const rawSpecialDeltaStats = await fetch(`https://raw.githubusercontent.com/${repo}/src/data/pokemon/base_stats_special.h`)
+    const textSpecialDeltaStats = await rawSpecialDeltaStats.text()
+
+    species = regexSpecialDeltaStats(textSpecialDeltaStats, species)
+    
+    return species
+}
+
 
 
 
@@ -114,14 +123,12 @@ async function buildSpeciesObj(){
         getSprite(species)
     ])
     species = await getChanges(species, "https://raw.githubusercontent.com/rh-hideout/pokeemerald-expansion/e22ac5161723e7baf711ac66fab28c8feff2cd85/src/data/pokemon/species_info.h")
+    species = await getDeltaStats(species)
 
     Object.keys(species).forEach(name => {
         if(species[name]["type1"] === "TYPE_DRAGON" || species[name]["type2"] === "TYPE_DRAGON"){
             if(!species[name]["tutorLearnsets"].includes("MOVE_DRACO_METEOR"))
                 species[name]["tutorLearnsets"].push("MOVE_DRACO_METEOR")
-        }
-        if(speciesHasType3(species[name])){
-            species[name]["type3"] = speciesHasType3(species[name])
         }
     })
 

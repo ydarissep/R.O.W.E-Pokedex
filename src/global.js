@@ -1,5 +1,5 @@
 window.repo = "BelialClover/RoweRepo/main"
-window.checkUpdate = "13 ROWE"
+window.checkUpdate = "14 ROWE"
 window.showShinyToggle = true
 
 fetch('https://raw.githubusercontent.com/ydarissep/dex-core/main/index.html').then(async response => {
@@ -16,6 +16,7 @@ fetch('https://raw.githubusercontent.com/ydarissep/dex-core/main/index.html').th
                 <th>Name</th>
                 <th>Type</th>
                 <th>Split</th>
+                <th>Level</th>
                 <th class="speciesPanelLearnsetsPower">Power</th>
                 <th class="speciesPanelLearnsetsAccuracy">Acc</th>
                 <th class="speciesPanelLearnsetsPP">PP</th>
@@ -60,6 +61,7 @@ fetch('https://raw.githubusercontent.com/ydarissep/dex-core/main/index.html').th
             }
             lazyLoading(true)
         })`
+        text = text.replace("footerP(`For the best experience, please visit ${window.location.href}`)", "fetchData(searchParams)")
         await eval.call(window,text)
         document.getElementById("trainersButton").classList.add("hide")
         window.speciesPanelSignatureTable = document.getElementById("speciesPanelSignatureTable")
